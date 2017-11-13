@@ -6,7 +6,10 @@
       "manipulators": [
         {
           "from": {
-            "key_code": "d"
+            "key_code": "d",
+            "modifiers": {
+              "optional": "caps_lock"
+            }
           },
           "to": [
             {
@@ -148,9 +151,9 @@
           },
           "to": [
             {
-              "key_code": "semicolon",
+              "key_code": "spacebar",
               "modifiers": [
-                "left_command"
+                "left_control"
               ]
             },
             {
@@ -162,27 +165,20 @@
               "type": "variable_if",
               "name": "ghost_mode_deletion",
               "value": 1
-            },
-            {
-              "type": "frontmost_application_if",
-              "bundle_identifiers": [
-                "^com\\.google\\.Chrome$"
-              ]
             }
           ],
           "type": "basic"
         },
         {
           "from": {
-            "key_code": "k"
+            "key_code": "k",
+            "modifiers": {
+              "optional": "caps_lock"
+            }
           },
           "to": [
             {
-              "key_code": "semicolon",
-              "modifiers": [
-                "left_command",
-                "left_shift"
-              ]
+              "key_code": "caps_lock"
             },
             {
               "key_code": "vk_none"
@@ -193,12 +189,6 @@
               "type": "variable_if",
               "name": "ghost_mode_deletion",
               "value": 1
-            },
-            {
-              "type": "frontmost_application_if",
-              "bundle_identifiers": [
-                "^com\\.google\\.Chrome$"
-              ]
             }
           ],
           "type": "basic"
@@ -479,29 +469,6 @@
         },
         {
           "from": {
-            "key_code": "h",
-            "modifiers": {
-              "optional": [
-                "any"
-              ]
-            }
-          },
-          "to": [
-            {
-              "key_code": "left_arrow"
-            }
-          ],
-          "conditions": [
-            {
-              "type": "variable_if",
-              "name": "ghost_mode_motion",
-              "value": 1
-            }
-          ],
-          "type": "basic"
-        },
-        {
-          "from": {
             "key_code": "j",
             "modifiers": {
               "optional": [
@@ -535,6 +502,52 @@
           "to": [
             {
               "key_code": "up_arrow"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "variable_if",
+              "name": "ghost_mode_motion",
+              "value": 1
+            }
+          ],
+          "type": "basic"
+        },
+        {
+          "from": {
+            "key_code": "g",
+            "modifiers": {
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "key_code": "left_arrow"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "variable_if",
+              "name": "ghost_mode_motion",
+              "value": 1
+            }
+          ],
+          "type": "basic"
+        },
+        {
+          "from": {
+            "key_code": "h",
+            "modifiers": {
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "key_code": "left_arrow"
             }
           ],
           "conditions": [
