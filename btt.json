@@ -238,20 +238,6 @@
           "BTTAlternateIconData" : ""
         }
       ]
-    },
-    {
-      "BTTAppBundleIdentifier" : "com.apple.finder",
-      "BTTAppName" : "Finder",
-      "BTTTriggers" : [
-
-      ]
-    },
-    {
-      "BTTAppBundleIdentifier" : "com.google.Chrome",
-      "BTTAppName" : "Google Chrome",
-      "BTTTriggers" : [
-
-      ]
     }
   ],
   "BTTPresetSnapAreas" : [
