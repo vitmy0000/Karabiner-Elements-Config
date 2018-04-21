@@ -37,3 +37,9 @@ settings.theme = `
     background: #4ec10d;
 }`;
 // click `Save` button to make above settings to take effect.
+
+settings.theme = `
+    #sk_status, #sk_find {
+        font-size: 20pt;
+    }
+}`;
