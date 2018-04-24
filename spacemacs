@@ -304,9 +304,61 @@ explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
   ;; basics
   (setq powerline-default-separator 'nil)
+  (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   (define-key evil-normal-state-map ";" 'evil-write)
   (define-key evil-normal-state-map "q" 'evil-quit)
   (define-key evil-normal-state-map "U" 'evil-lisp-state-undo-tree-redo)
+  (define-key evil-motion-state-map "H" 'evil-first-non-blank)
+  (define-key evil-motion-state-map "L" 'evil-end-of-line)
+  ;; do not yank deleted text
+  (define-key evil-normal-state-map "m" 'evil-delete)
+  (define-key evil-normal-state-map "M" 'evil-delete-line)
+  (evil-define-operator evil-delete-char-without-register (beg end type reg)
+    "delete character without yanking"
+    :motion evil-forward-char
+    (interactive "<R><x>")
+    (evil-delete beg end type ?_))
+  (evil-define-operator evil-delete-backward-char-without-register (beg end type reg)
+    "delete backward character without yanking"
+    :motion evil-backward-char
+    (interactive "<R><x>")
+    (evil-delete beg end type ?_))
+  (evil-define-operator evil-delete-without-register (beg end type reg yank-handler)
+    "delete without yanking"
+    (interactive "<R><x><y>")
+    (evil-delete beg end type ?_ yank-handler))
+  (evil-define-operator evil-delete-line-without-register (beg end type reg yank-handler)
+    "delete to end of line without yanking"
+    :motion evil-end-of-line
+    (interactive "<R><x>")
+    (evil-delete-line beg end type ?_ yank-handler))
+  (evil-define-operator evil-change-without-register (beg end type reg yank-handler)
+    "change without yanking"
+    (interactive "<R><x><y>")
+    (evil-change beg end type ?_ yank-handler))
+  (evil-define-operator evil-change-line-without-register (beg end type reg yank-handler)
+    "change to end of line without yanking"
+    :motion evil-end-of-line
+    (interactive "<R><x>")
+    (evil-change beg end type ?_ yank-handler))
+  (evil-define-operator my/evil-substitute (beg end type register)
+    "substitute"
+    (interactive "<R><x><y>")
+    (evil-change beg end type register))
+  (define-key evil-normal-state-map (kbd "c") 'evil-change-without-register)
+  (define-key evil-normal-state-map (kbd "C") 'evil-change-line-without-register)
+  (define-key evil-normal-state-map (kbd "d") 'evil-delete-without-register)
+  (define-key evil-normal-state-map (kbd "D") 'evil-delete-line-without-register)
+  (define-key evil-normal-state-map (kbd "x") 'evil-delete-char-without-register)
+  (define-key evil-normal-state-map (kbd "X") 'evil-delete-backward-char-without-register)
+  (define-key evil-normal-state-map (kbd "s") 'evil-substitute)
+  ;; evil-surround
+  (evil-define-key 'visual evil-surround-mode-map "s" 'evil-substitute)
+  (evil-define-key 'visual evil-surround-mode-map "S" 'evil-surround-region)
+  (add-to-list 'evil-surround-operator-alist
+               '(evil-change-without-register . change))
+  (add-to-list 'evil-surround-operator-alist
+               '(evil-delete-without-register . delete))
   ;; smooth scrolling
   (define-key evil-normal-state-map "J" 'scroll-up)
   (define-key evil-normal-state-map "K" 'scroll-down)
@@ -314,6 +366,17 @@ you should place your code here."
   (sublimity-mode 1)
   (setq sublimity-scroll-weight 5
         sublimity-scroll-drift-length 1)
+  ;; prevent the visual selection overriding system clipboard
+  (fset 'evil-visual-update-x-selection 'ignore)
+  ;; prevent the kill overriding system clipboard
+  (defun my/delete-line () (interactive) (delete-region (point) (progn (forward-line 1) (forward-char -1) (point))))
+  (defun my/delete-line-backwards () (interactive) (delete-region (line-beginning-position) (point)))
+  (defun my/delete-word () (interactive) (delete-region (point) (progn (forward-word 1) (point))))
+  (defun my/delete-word-backwards () (interactive) (push-mark) (backward-word) (delete-region (point) (mark)))
+  (global-set-key (kbd "C-k") 'my/delete-line)
+  (global-set-key (kbd "C-u") 'my/delete-line-backwards)
+  (global-set-key (kbd "M-d") 'my/delete-word)
+  (global-set-key (kbd "M-DEL") 'my/delete-word-backwards)
   ;; arrow keys in helm
   (require 'helm-config)
   (helm-mode 1)
@@ -324,7 +387,7 @@ you should place your code here."
   (with-eval-after-load 'linum
     (linum-relative-toggle))
   ;; comment
-  ;; (spacemacs/set-leader-keys "cc" 'spacemacs/comment-or-uncomment-lines)
+  (spacemacs/set-leader-keys "cc" 'spacemacs/comment-or-uncomment-lines)
   ;; org
   (with-eval-after-load 'org
     ;; here goes your Org config

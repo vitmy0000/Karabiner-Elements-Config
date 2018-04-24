@@ -176,9 +176,6 @@
           "to": [
             {
               "key_code": "caps_lock"
-            },
-            {
-              "key_code": "vk_none"
             }
           ],
           "conditions": [

@@ -38,6 +38,11 @@ settings.theme = `
 }`;
 // click `Save` button to make above settings to take effect.
 
+map('J', 'd')
+map('K', 'e')
+map('q', 'x')
+map('u', 'X')
+
 settings.theme = `
     #sk_status, #sk_find {
         font-size: 20pt;
