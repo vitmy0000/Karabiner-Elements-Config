@@ -141,7 +141,7 @@ values."
    dotspacemacs-emacs-leader-key "M-m"
    ;; Major mode leader key is a shortcut key which is the equivalent of
    ;; pressing `<leader> m`. Set it to `nil` to disable it. (default ",")
-   dotspacemacs-major-mode-leader-key ","
+   dotspacemacs-major-mode-leader-key "RET"
    ;; Major mode leader key accessible in `emacs state' and `insert state'.
    ;; (default "C-M-m")
    dotspacemacs-major-mode-emacs-leader-key "C-M-m"
@@ -306,10 +306,14 @@ you should place your code here."
   (setq powerline-default-separator 'nil)
   (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   (define-key evil-normal-state-map ";" 'evil-write)
+  (define-key evil-normal-state-map "," 'evil-join)
   (define-key evil-normal-state-map "q" 'evil-quit)
   (define-key evil-normal-state-map "U" 'evil-lisp-state-undo-tree-redo)
   (define-key evil-motion-state-map "H" 'evil-first-non-blank)
   (define-key evil-motion-state-map "L" 'evil-end-of-line)
+  ;; Keep the region active when shifting
+  (evil-map visual "<" "<gv")
+  (evil-map visual ">" ">gv")
   ;; do not yank deleted text
   (define-key evil-normal-state-map "m" 'evil-delete)
   (define-key evil-normal-state-map "M" 'evil-delete-line)
@@ -359,6 +363,12 @@ you should place your code here."
                '(evil-change-without-register . change))
   (add-to-list 'evil-surround-operator-alist
                '(evil-delete-without-register . delete))
+  ;; Make evil-mode up/down operate in screen lines instead of logical lines
+  (define-key evil-motion-state-map "j" 'evil-next-visual-line)
+  (define-key evil-motion-state-map "k" 'evil-previous-visual-line)
+  ;; Also in visual mode
+  (define-key evil-visual-state-map "j" 'evil-next-visual-line)
+  (define-key evil-visual-state-map "k" 'evil-previous-visual-line)
   ;; smooth scrolling
   (define-key evil-normal-state-map "J" 'scroll-up)
   (define-key evil-normal-state-map "K" 'scroll-down)
@@ -388,6 +398,10 @@ you should place your code here."
     (linum-relative-toggle))
   ;; comment
   (spacemacs/set-leader-keys "cc" 'spacemacs/comment-or-uncomment-lines)
+  ;; eval
+  (spacemacs/set-leader-keys-for-major-mode 'emacs-lisp-mode "ee" 'lisp-state-eval-sexp-end-of-line)
+  (setq eval-sexp-fu-flash-duration 0.5)
+  (setq eval-sexp-fu-flash-error-duration 0.5)
   ;; org
   (with-eval-after-load 'org
     ;; here goes your Org config
@@ -414,7 +428,7 @@ you should place your code here."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (sublimity org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-download htmlize helm-company helm-c-yasnippet gnuplot fuzzy flyspell-correct-helm flyspell-correct company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))))
+    (org-mime sublimity org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-download htmlize helm-company helm-c-yasnippet gnuplot fuzzy flyspell-correct-helm flyspell-correct company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
