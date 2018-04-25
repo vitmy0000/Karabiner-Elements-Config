@@ -46,11 +46,18 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(sublimity)
+   dotspacemacs-additional-packages
+   '(
+     sublimity
+     (flash-region :location (recipe :fetcher github :repo "vitmy0000/flash-region"))
+     )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '()
+   dotspacemacs-excluded-packages
+   '(
+     volatile-highlights
+     )
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -153,7 +160,7 @@ values."
    ;; works in the GUI. (default nil)
    dotspacemacs-distinguish-gui-tab nil
    ;; If non nil `Y' is remapped to `y$' in Evil states. (default nil)
-   dotspacemacs-remap-Y-to-y$ nil
+   dotspacemacs-remap-Y-to-y$ t
    ;; If non-nil, the shift mappings `<' and `>' retain visual state if used
    ;; there. (default t)
    dotspacemacs-retain-visual-state-on-shift t
@@ -304,6 +311,7 @@ explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
   ;; basics
   (setq powerline-default-separator 'nil)
+  (setq evil-cross-lines t)
   (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   (define-key evil-normal-state-map ";" 'evil-write)
   (define-key evil-normal-state-map "," 'evil-join)
@@ -311,58 +319,65 @@ you should place your code here."
   (define-key evil-normal-state-map "U" 'evil-lisp-state-undo-tree-redo)
   (define-key evil-motion-state-map "H" 'evil-first-non-blank)
   (define-key evil-motion-state-map "L" 'evil-end-of-line)
-  ;; Keep the region active when shifting
-  (evil-map visual "<" "<gv")
-  (evil-map visual ">" ">gv")
   ;; do not yank deleted text
+  (define-key evil-normal-state-map "gm" 'evil-set-marker)
   (define-key evil-normal-state-map "m" 'evil-delete)
   (define-key evil-normal-state-map "M" 'evil-delete-line)
-  (evil-define-operator evil-delete-char-without-register (beg end type reg)
+  (evil-define-operator my/evil-delete-char-without-register (beg end type reg)
     "delete character without yanking"
     :motion evil-forward-char
     (interactive "<R><x>")
     (evil-delete beg end type ?_))
-  (evil-define-operator evil-delete-backward-char-without-register (beg end type reg)
+  (evil-define-operator my/evil-delete-backward-char-without-register (beg end type reg)
     "delete backward character without yanking"
     :motion evil-backward-char
     (interactive "<R><x>")
     (evil-delete beg end type ?_))
-  (evil-define-operator evil-delete-without-register (beg end type reg yank-handler)
+  (evil-define-operator my/evil-delete-without-register (beg end type reg yank-handler)
     "delete without yanking"
     (interactive "<R><x><y>")
     (evil-delete beg end type ?_ yank-handler))
-  (evil-define-operator evil-delete-line-without-register (beg end type reg yank-handler)
+  (evil-define-operator my/evil-delete-line-without-register (beg end type reg yank-handler)
     "delete to end of line without yanking"
     :motion evil-end-of-line
     (interactive "<R><x>")
     (evil-delete-line beg end type ?_ yank-handler))
-  (evil-define-operator evil-change-without-register (beg end type reg yank-handler)
+  (evil-define-operator my/evil-change-without-register (beg end type reg yank-handler)
     "change without yanking"
     (interactive "<R><x><y>")
     (evil-change beg end type ?_ yank-handler))
-  (evil-define-operator evil-change-line-without-register (beg end type reg yank-handler)
+  (evil-define-operator my/evil-change-line-without-register (beg end type reg yank-handler)
     "change to end of line without yanking"
     :motion evil-end-of-line
     (interactive "<R><x>")
     (evil-change beg end type ?_ yank-handler))
-  (evil-define-operator my/evil-substitute (beg end type register)
+  (evil-define-operator my/evil-substitute (beg end type register yank-handler)
     "substitute"
     (interactive "<R><x><y>")
-    (evil-change beg end type register))
-  (define-key evil-normal-state-map (kbd "c") 'evil-change-without-register)
-  (define-key evil-normal-state-map (kbd "C") 'evil-change-line-without-register)
-  (define-key evil-normal-state-map (kbd "d") 'evil-delete-without-register)
-  (define-key evil-normal-state-map (kbd "D") 'evil-delete-line-without-register)
-  (define-key evil-normal-state-map (kbd "x") 'evil-delete-char-without-register)
-  (define-key evil-normal-state-map (kbd "X") 'evil-delete-backward-char-without-register)
-  (define-key evil-normal-state-map (kbd "s") 'evil-substitute)
+    (evil-delete beg end type ?_ yank-handler))
+  (defun my/evil-substitute-wrapper (orig-fn beg end &optional type register &rest args)
+    (apply orig-fn beg end type register args)
+    (evil-paste-before 1))
+  (advice-add 'my/evil-substitute :around 'my/evil-substitute-wrapper)
+  (define-key evil-normal-state-map (kbd "c") 'my/evil-change-without-register)
+  (define-key evil-normal-state-map (kbd "C") 'my/evil-change-line-without-register)
+  (define-key evil-normal-state-map (kbd "d") 'my/evil-delete-without-register)
+  (define-key evil-normal-state-map (kbd "D") 'my/evil-delete-line-without-register)
+  (define-key evil-normal-state-map (kbd "x") 'my/evil-delete-char-without-register)
+  (define-key evil-normal-state-map (kbd "X") 'my/evil-delete-backward-char-without-register)
+  (define-key evil-normal-state-map (kbd "s") 'my/evil-substitute)
   ;; evil-surround
-  (evil-define-key 'visual evil-surround-mode-map "s" 'evil-substitute)
+  (evil-define-key 'visual evil-surround-mode-map "s" 'my/evil-substitute)
   (evil-define-key 'visual evil-surround-mode-map "S" 'evil-surround-region)
   (add-to-list 'evil-surround-operator-alist
                '(evil-change-without-register . change))
   (add-to-list 'evil-surround-operator-alist
                '(evil-delete-without-register . delete))
+  ;; evil flash yank region
+  (defun my/evil-yank-with-flash (orig-fn beg end &optional type register &rest args)
+    (apply orig-fn beg end type register args)
+    (flash-region beg end 'anzu-match-3 0.5))
+  (advice-add 'evil-yank :around 'my/evil-yank-with-flash)
   ;; Make evil-mode up/down operate in screen lines instead of logical lines
   (define-key evil-motion-state-map "j" 'evil-next-visual-line)
   (define-key evil-motion-state-map "k" 'evil-previous-visual-line)
@@ -428,7 +443,8 @@ you should place your code here."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (org-mime sublimity org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-download htmlize helm-company helm-c-yasnippet gnuplot fuzzy flyspell-correct-helm flyspell-correct company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))))
+    (flash-region xterm-color smeargle shell-pop orgit multi-term magit-gitflow helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link evil-magit magit magit-popup git-commit ghub let-alist with-editor eshell-z eshell-prompt-extras esh-help org-mime sublimity org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-download htmlize helm-company helm-c-yasnippet gnuplot fuzzy flyspell-correct-helm flyspell-correct company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
+ '(paradox-github-token t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
