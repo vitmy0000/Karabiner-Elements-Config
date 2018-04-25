@@ -354,11 +354,14 @@ you should place your code here."
   (evil-define-operator my/evil-substitute (beg end type register yank-handler)
     "substitute"
     (interactive "<R><x><y>")
-    (evil-delete beg end type ?_ yank-handler))
-  (defun my/evil-substitute-wrapper (orig-fn beg end &optional type register &rest args)
-    (apply orig-fn beg end type register args)
+    (evil-delete beg end type ?_ yank-handler)
     (evil-paste-before 1))
-  (advice-add 'my/evil-substitute :around 'my/evil-substitute-wrapper)
+  (evil-define-operator my/evil-substitute-line (beg end type register yank-handler)
+    "substitute to end of line"
+    :motion evil-end-of-line
+    (interactive "<R><x>")
+    (evil-delete beg end type ?_ yank-handler)
+    (evil-paste-before 1))
   (define-key evil-normal-state-map (kbd "c") 'my/evil-change-without-register)
   (define-key evil-normal-state-map (kbd "C") 'my/evil-change-line-without-register)
   (define-key evil-normal-state-map (kbd "d") 'my/evil-delete-without-register)
@@ -366,6 +369,7 @@ you should place your code here."
   (define-key evil-normal-state-map (kbd "x") 'my/evil-delete-char-without-register)
   (define-key evil-normal-state-map (kbd "X") 'my/evil-delete-backward-char-without-register)
   (define-key evil-normal-state-map (kbd "s") 'my/evil-substitute)
+  (define-key evil-normal-state-map (kbd "S") 'my/evil-substitute-line)
   ;; evil-surround
   (evil-define-key 'visual evil-surround-mode-map "s" 'my/evil-substitute)
   (evil-define-key 'visual evil-surround-mode-map "S" 'evil-surround-region)
