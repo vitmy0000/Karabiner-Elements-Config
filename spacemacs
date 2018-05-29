@@ -424,12 +424,7 @@ you should place your code here."
   ;; org
   (with-eval-after-load 'org
     ;; here goes your Org config
-    (setq org-agenda-files '("~/Dropbox/Org/GTD/gtd.org"
-                             "~/Dropbox/Org/GTD/memo.org"
-                             "~/Dropbox/Org/GTD/someday.org"))
-    (setq org-capture-templates '(("i" "inbox" entry
-                                   (file "~/Dropbox/Org/GTD/inbox.org")
-                                   "* %i%?")))
+    (setq org-agenda-files '("~/Dropbox/Org/GTD/gtd.org"))
     (setq org-refile-targets '((nil :maxlevel . 9)
                                (org-agenda-files :maxlevel . 9)))
     (setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
