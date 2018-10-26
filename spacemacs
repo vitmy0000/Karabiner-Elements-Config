@@ -310,6 +310,7 @@ This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
   ;; basics
+  (setq mac-command-modifier 'control)
   (setq powerline-default-separator 'nil)
   (setq evil-cross-lines t)
   (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
@@ -421,6 +422,9 @@ you should place your code here."
   (spacemacs/set-leader-keys-for-major-mode 'emacs-lisp-mode "ee" 'lisp-state-eval-sexp-end-of-line)
   (setq eval-sexp-fu-flash-duration 0.5)
   (setq eval-sexp-fu-flash-error-duration 0.5)
+  ;; insert date
+  (defun insert-current-date () (interactive)
+         (insert (shell-command-to-string "date +'%A %b-%d-%Y%nWeek of year: %V, Day of year %j'")))
   ;; org
   (with-eval-after-load 'org
     ;; here goes your Org config
