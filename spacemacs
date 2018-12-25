@@ -31,6 +31,7 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     html
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -312,12 +313,18 @@ you should place your code here."
   ;; basics
   (setq mac-command-modifier 'control)
   (setq powerline-default-separator 'nil)
+  (define-advice delete-frame (:around (oldfun &rest args) confirm-frame-deletion)
+    "Confirm deleting the frame."
+    (interactive)
+    (when (y-or-n-p "Delete frame? ")
+      (apply oldfun args)))
+  ;; evil
   (setq evil-cross-lines t)
   (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   (define-key evil-normal-state-map ";" 'evil-write)
   (define-key evil-normal-state-map "," 'evil-join)
   (define-key evil-normal-state-map "q" 'evil-quit)
-  (define-key evil-normal-state-map "U" 'evil-lisp-state-undo-tree-redo)
+  (define-key evil-normal-state-map "U" 'undo-tree-redo)
   (define-key evil-motion-state-map "H" 'evil-first-non-blank)
   (define-key evil-motion-state-map "L" 'evil-end-of-line)
   ;; do not yank deleted text
@@ -371,6 +378,8 @@ you should place your code here."
   (define-key evil-normal-state-map (kbd "X") 'my/evil-delete-backward-char-without-register)
   (define-key evil-normal-state-map (kbd "s") 'my/evil-substitute)
   (define-key evil-normal-state-map (kbd "S") 'my/evil-substitute-line)
+  ;; Enable cmd-v in insert mode
+  (global-set-key (kbd "C-v") 'yank)
   ;; evil-surround
   (evil-define-key 'visual evil-surround-mode-map "s" 'my/evil-substitute)
   (evil-define-key 'visual evil-surround-mode-map "S" 'evil-surround-region)
@@ -394,10 +403,16 @@ you should place your code here."
   (define-key evil-normal-state-map "K" 'scroll-down)
   (require 'sublimity-scroll)
   (sublimity-mode 1)
-  (setq sublimity-scroll-weight 5
-        sublimity-scroll-drift-length 1)
+  (setq sublimity-scroll-weight 12
+        sublimity-scroll-drift-length 0)
+  (setq smooth-scroll-margin 8)
+  (setq mouse-wheel-scroll-amount '(2 ((shift) . 1))) ;; two lines at a time
+  (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+  (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
   ;; prevent the visual selection overriding system clipboard
   (fset 'evil-visual-update-x-selection 'ignore)
+  ;; maximize window
+  (spacemacs/set-leader-keys "w <SPC>" 'spacemacs/toggle-maximize-buffer)
   ;; prevent the kill overriding system clipboard
   (defun my/delete-line () (interactive) (delete-region (point) (progn (forward-line 1) (forward-char -1) (point))))
   (defun my/delete-line-backwards () (interactive) (delete-region (line-beginning-position) (point)))
@@ -416,25 +431,34 @@ you should place your code here."
   (add-hook 'prog-mode-hook 'linum-mode)
   (with-eval-after-load 'linum
     (linum-relative-toggle))
-  ;; comment
-  (spacemacs/set-leader-keys "cc" 'spacemacs/comment-or-uncomment-lines)
   ;; eval
   (spacemacs/set-leader-keys-for-major-mode 'emacs-lisp-mode "ee" 'lisp-state-eval-sexp-end-of-line)
   (setq eval-sexp-fu-flash-duration 0.5)
   (setq eval-sexp-fu-flash-error-duration 0.5)
+  ;; show tooltip even if there is only one candidate in company-mode
+  (setq company-frontends '(company-pseudo-tooltip-frontend
+                            company-echo-metadata-frontend))
   ;; insert date
   (defun insert-current-date () (interactive)
          (insert (shell-command-to-string "date +'%A %b-%d-%Y%nWeek of year: %V, Day of year %j'")))
   ;; org
   (with-eval-after-load 'org
     ;; here goes your Org config
-    (setq org-agenda-files '("~/Dropbox/Org/GTD/gtd.org"))
+    (setq org-agenda-files '("~/Desktop/desk_org/todo/plan.org"))
     (setq org-refile-targets '((nil :maxlevel . 9)
                                (org-agenda-files :maxlevel . 9)))
     (setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
     (setq org-refile-use-outline-path t)                  ; Show full paths for refiling
-    (setq org-archive-location "~/Dropbox/Org/GTD/archived.org::")
     )
+  ;; org habit
+  (setq org-habit-show-habits-only-for-today nil)
+  ;; org babel
+  (setq org-confirm-babel-evaluate nil)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(
+     (python .t)
+     ))
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -444,9 +468,12 @@ you should place your code here."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-modules
+   (quote
+    (org-bbdb org-bibtex org-docview org-gnus org-habit org-info org-irc org-mhe org-rmail org-w3m)))
  '(package-selected-packages
    (quote
-    (flash-region xterm-color smeargle shell-pop orgit multi-term magit-gitflow helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link evil-magit magit magit-popup git-commit ghub let-alist with-editor eshell-z eshell-prompt-extras esh-help org-mime sublimity org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-download htmlize helm-company helm-c-yasnippet gnuplot fuzzy flyspell-correct-helm flyspell-correct company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
+    (sass-mode company-web web-mode tagedit slim-mode scss-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode web-completion-data flash-region xterm-color smeargle shell-pop orgit multi-term magit-gitflow helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link evil-magit magit magit-popup git-commit ghub let-alist with-editor eshell-z eshell-prompt-extras esh-help org-mime sublimity org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-download htmlize helm-company helm-c-yasnippet gnuplot fuzzy flyspell-correct-helm flyspell-correct company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
  '(paradox-github-token t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
