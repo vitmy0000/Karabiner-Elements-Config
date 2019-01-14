@@ -31,7 +31,6 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
-     html
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -39,9 +38,10 @@ values."
      ;; ----------------------------------------------------------------
      helm
      auto-completion
-     emacs-lisp
-     org
      spell-checking
+     org
+     emacs-lisp
+     html
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
@@ -318,7 +318,6 @@ you should place your code here."
     (interactive)
     (when (y-or-n-p "Delete frame? ")
       (apply oldfun args)))
-  ;; evil
   (setq evil-cross-lines t)
   (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   (define-key evil-normal-state-map ";" 'evil-write)
@@ -328,7 +327,7 @@ you should place your code here."
   (define-key evil-motion-state-map "H" 'evil-first-non-blank)
   (define-key evil-motion-state-map "L" 'evil-end-of-line)
   ;; do not yank deleted text
-  (define-key evil-normal-state-map "gm" 'evil-set-marker)
+  (define-key evil-normal-state-map "&" 'evil-set-marker)
   (define-key evil-normal-state-map "m" 'evil-delete)
   (define-key evil-normal-state-map "M" 'evil-delete-line)
   (evil-define-operator my/evil-delete-char-without-register (beg end type reg)
@@ -457,8 +456,16 @@ you should place your code here."
   (org-babel-do-load-languages
    'org-babel-load-languages
    '(
-     (python .t)
+     (emacs-lisp . t)
+     (python . t)
+     (C . t)
      ))
+  (setq org-src-fontify-natively t
+        org-src-window-setup 'current-window
+        org-src-strip-leading-and-trailing-blank-lines t
+        org-src-preserve-indentation t
+        org-src-tab-acts-natively t)
+  ;; end of config
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
